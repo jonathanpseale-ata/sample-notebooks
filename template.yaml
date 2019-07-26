@@ -1,0 +1,122 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  creationTimestamp: '2019-07-26T03:05:09Z'
+  generation: 2
+  labels:
+    app: custom-notebook4
+  name: custom-notebook4
+  namespace: myproject
+  resourceVersion: '56817'
+  selfLink: >-
+    /apis/apps.openshift.io/v1/namespaces/myproject/deploymentconfigs/custom-notebook4
+  uid: 2d617306-af52-11e9-a6d8-128ddb1a223a
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    app: custom-notebook4
+    deploymentconfig: custom-notebook4
+  strategy:
+    activeDeadlineSeconds: 21600
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: custom-notebook4
+        deploymentconfig: custom-notebook4
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - env:
+            - name: JUPYTER_NOTEBOOK_PASSWORD
+              value: password
+            - name: JUPYTER_ENABLE_WEBDAV
+              value: 'true'
+          image: >-
+            172.30.1.1:5000/myproject/custom-notebook3@sha256:c58bf6394b6373929857ac708aa7dc2493f64faf487162311d77f5b2312e1c1d
+          imagePullPolicy: Always
+          name: notebook
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8081
+              protocol: TCP
+          resources:
+            limits:
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /opt/app-root
+              name: data
+              subPath: app-root
+      dnsPolicy: ClusterFirst
+      initContainers:
+        - command:
+            - setup-volume.sh
+            - /opt/app-root
+            - /mnt/app-root
+          image: >-
+            172.30.1.1:5000/myproject/custom-notebook3@sha256:c58bf6394b6373929857ac708aa7dc2493f64faf487162311d77f5b2312e1c1d
+          imagePullPolicy: Always
+          name: setup-volume
+          resources:
+            limits:
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /mnt
+              name: data
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: custom-notebook4-data
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - setup-volume
+          - notebook
+        from:
+          kind: ImageStreamTag
+          name: 'custom-notebook3:latest'
+          namespace: myproject
+        lastTriggeredImage: >-
+          172.30.1.1:5000/myproject/custom-notebook3@sha256:c58bf6394b6373929857ac708aa7dc2493f64faf487162311d77f5b2312e1c1d
+      type: ImageChange
+status:
+  availableReplicas: 0
+  conditions:
+    - lastTransitionTime: '2019-07-26T03:05:09Z'
+      lastUpdateTime: '2019-07-26T03:05:09Z'
+      message: Deployment config does not have minimum availability.
+      status: 'False'
+      type: Available
+    - lastTransitionTime: '2019-07-26T03:05:10Z'
+      lastUpdateTime: '2019-07-26T03:05:10Z'
+      message: >-
+        replication controller "custom-notebook4-1" is waiting for pod
+        "custom-notebook4-1-deploy" to run
+      status: Unknown
+      type: Progressing
+  details:
+    causes:
+      - type: ConfigChange
+    message: config change
+  latestVersion: 1
+  observedGeneration: 2
+  replicas: 1
+  unavailableReplicas: 1
+  updatedReplicas: 1

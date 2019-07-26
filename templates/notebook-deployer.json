@@ -2,10 +2,10 @@
     "kind": "Template",
     "apiVersion": "template.openshift.io/v1",
     "metadata": {
-        "name": "notebook-workspace",
+        "name": "notebook-deployer",
         "annotations": {
-            "openshift.io/display-name": "Jupyter Notebook Workspace",
-            "description": "Template for deploying Jupyter Notebook images with persistent storage and webdav filesystem access.",
+            "openshift.io/display-name": "Jupyter Notebook",
+            "description": "Template for deploying Jupyter Notebook images.",
             "iconClass": "icon-python",
             "tags": "python,jupyter"
         }
@@ -29,11 +29,6 @@
         {
             "name": "NOTEBOOK_MEMORY",
             "value": "512Mi",
-            "required": true
-        },
-        {
-            "name": "VOLUME_SIZE",
-            "value": "1Gi",
             "required": true
         }
     ],
@@ -60,7 +55,6 @@
                         "imageChangeParams": {
                             "automatic": true,
                             "containerNames": [
-                                "setup-volume",
                                 "notebook"
                             ],
                             "from": {
@@ -83,47 +77,13 @@
                         }
                     },
                     "spec": {
-                        "volumes": [
-                            {
-                                "name": "data",
-                                "persistentVolumeClaim": {
-                                    "claimName": "${APPLICATION_NAME}-data"
-                                }
-                            }
-                        ],
-                        "initContainers": [
-                            {
-                                "name": "setup-volume",
-                                "image": "${NOTEBOOK_IMAGE}",
-                                "command": [
-                                    "setup-volume.sh",
-                                    "/opt/app-root",
-                                    "/mnt/app-root"
-                                ],
-                                "resources": {
-                                    "limits": {
-                                        "memory": "256Mi"
-                                    }
-                                },
-                                "volumeMounts": [
-                                    {
-                                        "name": "data",
-                                        "mountPath": "/mnt"
-                                    }
-                                ]
-                            }
-                        ],
                         "containers": [
                             {
                                 "name": "notebook",
-                                "image": "${NOTEBOOK_IMAGE}",
+                                "image": "${APPLICATION_NAME}:latest",
                                 "ports": [
                                     {
                                         "containerPort": 8080,
-                                        "protocol": "TCP"
-                                    },
-                                    {
-                                        "containerPort": 8081,
                                         "protocol": "TCP"
                                     }
                                 ],
@@ -132,46 +92,15 @@
                                         "memory": "${NOTEBOOK_MEMORY}"
                                     }
                                 },
-                                "volumeMounts": [
-                                    {
-                                        "name": "data",
-                                        "mountPath": "/opt/app-root",
-                                        "subPath": "app-root"
-                                    }
-                                ],
                                 "env": [
                                     {
                                         "name": "JUPYTER_NOTEBOOK_PASSWORD",
                                         "value": "${NOTEBOOK_PASSWORD}"
-                                    },
-                                    {
-                                        "name": "JUPYTER_ENABLE_WEBDAV",
-                                        "value": "true"
                                     }
                                 ]
                             }
                         ],
                         "automountServiceAccountToken": false
-                    }
-                }
-            }
-        },
-        {
-            "kind": "PersistentVolumeClaim",
-            "apiVersion": "v1",
-            "metadata": {
-                "name": "${APPLICATION_NAME}-data",
-                "labels": {
-                    "app": "${APPLICATION_NAME}"
-                }
-            },
-            "spec": {
-                "accessModes": [
-                    "ReadWriteOnce"
-                ],
-                "resources": {
-                    "requests": {
-                        "storage": "${VOLUME_SIZE}"
                     }
                 }
             }
@@ -192,12 +121,6 @@
                         "protocol": "TCP",
                         "port": 8080,
                         "targetPort": 8080
-                    },
-                    {
-                        "name": "8081-tcp",
-                        "protocol": "TCP",
-                        "port": 8081,
-                        "targetPort": 8081
                     }
                 ],
                 "selector": {

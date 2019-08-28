@@ -35,4 +35,4 @@ c.KubeSpawner.volume_mounts = [
 ]
 
 print('#################################')
-print('THIS IS THE PVC NAME TEMPLATE: %s') % c.KubeSpawner.pvc_name_template
+print('THIS IS THE PVC NAME TEMPLATE: %s' % c.KubeSpawner.pvc_name_template)

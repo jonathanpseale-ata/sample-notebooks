@@ -37,7 +37,7 @@ c.KubeSpawner.volume_mounts = [
 print('#################################')
 print('THIS IS THE PVC NAME TEMPLATE: %s' % c.KubeSpawner.pvc_name_template)
 print('#################################')
-print('THIS IS THE hub_connect_ip: %s' % c.KubeSpawner.hub_connect_ip)
+print('THIS IS THE hub_connect_ip: %s' % str(c.KubeSpawner.hub_connect_ip))
 print('#################################')
 print('THIS IS THE APPLICATION_NAME: %s' % os.environ.get('APPLICATION_NAME', 'unknown'))
 print('#################################')
